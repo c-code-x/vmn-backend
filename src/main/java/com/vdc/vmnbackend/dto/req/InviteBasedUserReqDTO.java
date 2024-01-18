@@ -16,7 +16,7 @@ public record InviteBasedUserReqDTO(
         @NotEmpty
         String password,
         @NotEmpty
-        String token,
+        UUID token,
         @NotEmpty
         Roles role,
         @NotEmpty

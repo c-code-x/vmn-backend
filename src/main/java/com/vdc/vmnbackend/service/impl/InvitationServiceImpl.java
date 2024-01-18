@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class InvitationServiceImpl implements InvitationService {
@@ -47,7 +48,7 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
 
-    public ResponseDTO<InvitationDAO> verifyInvitation(String token){
+    public ResponseDTO<InvitationDAO> verifyInvitation(UUID token){
         Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(token);
         if(invitationDAO.isEmpty())
             throw new ApiRuntimeException("Invalid Invitation!", HttpStatus.BAD_REQUEST);
