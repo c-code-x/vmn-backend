@@ -26,20 +26,7 @@ public record UserSignupReqDTO(
         @NotEmpty
         String linkedIn,
         @NotEmpty
-        String designation,
-        @NotEmpty
-        UUID createdBy
+        String designation
 ) {
-        public UserDAO toUserDAO() {
-                return UserDAO.builder()
-                        .name(name)
-                        .emailId(emailId)
-                        .password(password)
-                        .role(role)
-                        .contact(contact)
-                        .linkedIn(linkedIn)
-                        .designation(designation)
-                        .createdBy(createdBy)
-                        .build();
-        }
+
 }

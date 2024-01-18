@@ -16,10 +16,6 @@ public record InviteBasedUserReqDTO(
         @NotEmpty
         String password,
         @NotEmpty
-        UUID token,
-        @NotEmpty
-        Roles role,
-        @NotEmpty
         String contact,
         @NotEmpty
         String linkedIn,
