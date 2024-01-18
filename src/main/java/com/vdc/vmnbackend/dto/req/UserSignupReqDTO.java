@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@AllArgsConstructor
-@NoArgsConstructor
+
 public record UserSignupReqDTO(
 
         @NotEmpty

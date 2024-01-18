@@ -13,6 +13,8 @@ public class UserInviteReqDTO {
     @Email
     private String emailId;
 
+    //role should be either admin or user
+    @NotEmpty
     private Roles role;
 
 }

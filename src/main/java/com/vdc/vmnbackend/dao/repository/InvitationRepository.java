@@ -9,5 +9,5 @@ import java.util.UUID;
 
 public interface InvitationRepository extends JpaRepository<InvitationDAO, UUID> {
 
-    Optional<InvitationDAO> findByInvId(String token);
+    Optional<InvitationDAO> findByInvId(UUID token);
 }
