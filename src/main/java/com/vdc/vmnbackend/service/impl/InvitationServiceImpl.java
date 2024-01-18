@@ -35,7 +35,9 @@ public class InvitationServiceImpl implements InvitationService {
         this.emailService = emailService;
     }
     public BasicResDTO createInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO){
-        UserDAO existingUser = userService.getByEmail(userInviteReqDTO.getEmailId());
+        Boolean existingUser = userService.existsByEmailId(userInviteReqDTO.getEmailId());
+        if (existingUser)
+            return new BasicResDTO("User Already Exists!", HttpStatus.BAD_REQUEST);
         InvitationDAO invitationDAO = new InvitationDAO();
         invitationDAO.setName(userInviteReqDTO.getName());
         invitationDAO.setReceiverMailId(userInviteReqDTO.getEmailId());
@@ -68,14 +70,19 @@ public class InvitationServiceImpl implements InvitationService {
     }
 
 
-    public BasicResDTO createUserByInvitation(InviteBasedUserReqDTO inviteBasedUserReqDTO) {
-        InvitationDAO invitationDAO = invitationRepository.findByInvId(inviteBasedUserReqDTO.token()).get();
-        if(invitationDAO.getStatus()==InvitationStatus.ACCEPTED)
+    public BasicResDTO createUserByInvitation(InviteBasedUserReqDTO inviteBasedUserReqDTO, UUID token) {
+        Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(token);
+        if(invitationDAO.isEmpty())
+            throw new ApiRuntimeException("Invalid Invitation!", HttpStatus.BAD_REQUEST);
+        if(invitationDAO.get().getStatus()==InvitationStatus.ACCEPTED)
             throw new ApiRuntimeException("Invitation Already Accepted!", HttpStatus.BAD_REQUEST);
-        if(invitationDAO.getStatus()==InvitationStatus.EXPIRED)
+        if(invitationDAO.get().getStatus()==InvitationStatus.EXPIRED)
             throw new ApiRuntimeException("Invitation Expired!", HttpStatus.BAD_REQUEST);
-        UserSignupReqDTO userSignupReqDTO = new UserSignupReqDTO(inviteBasedUserReqDTO.name(),inviteBasedUserReqDTO.emailId(),inviteBasedUserReqDTO.password(),invitationDAO.getSender().getRole(),inviteBasedUserReqDTO.contact(),inviteBasedUserReqDTO.linkedIn(),
-                inviteBasedUserReqDTO.designation(),invitationDAO.getSender().getUid());
-        return userService.createUser(userSignupReqDTO);
+        UserSignupReqDTO userSignupReqDTO = new UserSignupReqDTO(inviteBasedUserReqDTO.name(),invitationDAO.get().getReceiverMailId(),inviteBasedUserReqDTO.password(),invitationDAO.get().getToRole(),inviteBasedUserReqDTO.contact(),inviteBasedUserReqDTO.linkedIn(),
+                inviteBasedUserReqDTO.designation());
+        userService.createUser(userSignupReqDTO,invitationDAO.get().getSender().getUid());
+        invitationDAO.get().setStatus(InvitationStatus.ACCEPTED);
+        invitationRepository.save(invitationDAO.get());
+        return new BasicResDTO("User Created!", HttpStatus.OK);
     }
 }

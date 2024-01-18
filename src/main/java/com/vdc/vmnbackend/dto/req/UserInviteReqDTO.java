@@ -3,6 +3,7 @@ package com.vdc.vmnbackend.dto.req;
 import com.vdc.vmnbackend.enumerators.Roles;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.context.annotation.Role;
 
@@ -14,7 +15,6 @@ public class UserInviteReqDTO {
     private String emailId;
 
     //role should be either admin or user
-    @NotEmpty
     private Roles role;
 
 }
