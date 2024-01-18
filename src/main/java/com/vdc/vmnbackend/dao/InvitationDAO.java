@@ -1,6 +1,7 @@
 package com.vdc.vmnbackend.dao;
 
 import com.vdc.vmnbackend.enumerators.InvitationStatus;
+import com.vdc.vmnbackend.enumerators.Roles;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -33,6 +34,9 @@ public class InvitationDAO {
 
     @Column(updatable = false,nullable = false)
     private String name;
+
+    @Column(updatable = false,nullable = false)
+    private Roles toRole;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
