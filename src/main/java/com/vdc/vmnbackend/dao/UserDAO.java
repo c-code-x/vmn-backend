@@ -45,7 +45,5 @@ public class UserDAO {
     @Column
     private String designation;
 
-    @Column(name = "createdBy")
-    private UUID createdBy;
 
 }
