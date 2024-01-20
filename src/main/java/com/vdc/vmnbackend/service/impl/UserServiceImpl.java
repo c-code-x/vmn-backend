@@ -12,6 +12,7 @@ import com.vdc.vmnbackend.dto.req.UserSignupReqDTO;
 import com.vdc.vmnbackend.enumerators.Roles;
 import com.vdc.vmnbackend.exception.ApiRuntimeException;
 import com.vdc.vmnbackend.service.UserService;
+import com.vdc.vmnbackend.utility.CommonConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,7 +53,7 @@ public class UserServiceImpl implements UserService {
 
     public void createUser(UserSignupReqDTO userSignupReqDTO, UserDAO creatorId){
         if(userRepository.existsByEmailId(userSignupReqDTO.emailId()))
-            throw  new ApiRuntimeException("User Already Exists!", HttpStatus.BAD_REQUEST);
+            throw  new ApiRuntimeException(CommonConstants.USER_EXITS, HttpStatus.BAD_REQUEST);
         UserDAO userDAO = UserDAO.builder()
                 .emailId(userSignupReqDTO.emailId())
                 .name(userSignupReqDTO.name())

@@ -47,7 +47,7 @@ public class AuthController {
     @GetMapping("renew-token")
     public ResponseDTO<TokenResDTO> refresh(Authentication authentication) {
         var payload = tokenService.generateToken(authentication);
-        return new ResponseDTO<TokenResDTO>(payload, new BasicResDTO("Token Renewed", HttpStatus.OK));
+        return new ResponseDTO<TokenResDTO>(payload, new BasicResDTO(CommonConstants.TOKEN_RENEWED, HttpStatus.OK));
     }
 
 }

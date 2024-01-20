@@ -34,6 +34,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class SecurityConfiguration {
     private static final String[] PUBLIC_URLS = {
             "/auth/**",
+            "/invite/verify-invite",
+            "/invite/accept-invitation",
     };
 
     private final String jwtKey;
@@ -69,7 +71,8 @@ public class SecurityConfiguration {
                         .requestMatchers(PUBLIC_URLS)
                         .permitAll()
                         .requestMatchers(CommonConstants.INVITE_URLS)
-                        .hasAuthority(CommonConstants.SUPER_ADMIN_ROLE)
+                        .hasAnyAuthority(CommonConstants.SUPER_ADMIN_ROLE,
+                                CommonConstants.ADMIN_ROLE)
                         .anyRequest()
                         .authenticated()
                 )
