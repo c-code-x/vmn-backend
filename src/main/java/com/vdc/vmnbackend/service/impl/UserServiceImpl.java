@@ -1,9 +1,15 @@
 package com.vdc.vmnbackend.service.impl;
 
+import com.vdc.vmnbackend.dao.AdminDAO;
+import com.vdc.vmnbackend.dao.CoachDAO;
+import com.vdc.vmnbackend.dao.MentorDAO;
 import com.vdc.vmnbackend.dao.UserDAO;
+import com.vdc.vmnbackend.dao.repository.AdminRepository;
+import com.vdc.vmnbackend.dao.repository.CoachRepository;
+import com.vdc.vmnbackend.dao.repository.MentorRepository;
 import com.vdc.vmnbackend.dao.repository.UserRepository;
 import com.vdc.vmnbackend.dto.req.UserSignupReqDTO;
-import com.vdc.vmnbackend.dto.res.BasicResDTO;
+import com.vdc.vmnbackend.enumerators.Roles;
 import com.vdc.vmnbackend.exception.ApiRuntimeException;
 import com.vdc.vmnbackend.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -19,9 +25,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bcryptEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bcryptEncoder){
+    private final AdminRepository adminRepository;
+    private final MentorRepository mentorRepository;
+    private final CoachRepository coachRepository;
+
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bcryptEncoder, AdminRepository adminRepository, MentorRepository mentorRepository, CoachRepository coachRepository){
         this.userRepository = userRepository;
         this.bcryptEncoder = bcryptEncoder;
+        this.adminRepository = adminRepository;
+        this.mentorRepository = mentorRepository;
+        this.coachRepository = coachRepository;
     }
     public UserDAO getByEmail(String emailId){
         Optional<UserDAO> userDAOOptional = userRepository.findByEmailId(emailId);
@@ -37,7 +50,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByEmailId(emailId);
     }
 
-    public void createUser(UserSignupReqDTO userSignupReqDTO, UUID creatorId){
+    public void createUser(UserSignupReqDTO userSignupReqDTO, UserDAO creatorId){
         if(userRepository.existsByEmailId(userSignupReqDTO.emailId()))
             throw  new ApiRuntimeException("User Already Exists!", HttpStatus.BAD_REQUEST);
         UserDAO userDAO = UserDAO.builder()
@@ -48,8 +61,30 @@ public class UserServiceImpl implements UserService {
                 .contact(userSignupReqDTO.contact())
                 .linkedIn(userSignupReqDTO.linkedIn())
                 .designation(userSignupReqDTO.designation())
-                .createdBy(creatorId)
                 .build();
+
+        if(userSignupReqDTO.role()== Roles.ADMIN){
+            AdminDAO adminDAO = AdminDAO.builder()
+                    .adminId(userDAO)
+                    .createdBy(creatorId)
+                    .build();
+            adminDAO = adminRepository.save(adminDAO);
+        }
+        else if(userSignupReqDTO.role()== Roles.MENTOR){
+            MentorDAO mentorDAO = MentorDAO.builder()
+                    .mentorId(userDAO)
+                    .adminId(creatorId)
+                    .build();
+            mentorDAO = mentorRepository.save(mentorDAO);
+        }
+        else if(userSignupReqDTO.role()== Roles.COACH){
+            CoachDAO coachDAO = CoachDAO.builder()
+                    .coachId(userDAO)
+                    .adminId(creatorId)
+                    .build();
+            coachDAO = coachRepository.save(coachDAO);
+        }
         userRepository.save(userDAO);
+
     }
 }

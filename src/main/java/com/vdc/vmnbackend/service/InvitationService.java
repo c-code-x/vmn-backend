@@ -10,7 +10,7 @@ import com.vdc.vmnbackend.dto.res.ResponseDTO;
 import java.util.UUID;
 
 public interface InvitationService {
-    public BasicResDTO createInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO);
+    public BasicResDTO createRoleBasedInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO);
 
     public ResponseDTO<InvitationDAO> verifyInvitation(UUID token);
 

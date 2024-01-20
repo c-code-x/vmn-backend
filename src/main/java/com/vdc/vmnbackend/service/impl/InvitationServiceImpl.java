@@ -9,6 +9,7 @@ import com.vdc.vmnbackend.dto.req.UserSignupReqDTO;
 import com.vdc.vmnbackend.dto.res.BasicResDTO;
 import com.vdc.vmnbackend.dto.res.ResponseDTO;
 import com.vdc.vmnbackend.enumerators.InvitationStatus;
+import com.vdc.vmnbackend.enumerators.Roles;
 import com.vdc.vmnbackend.exception.ApiRuntimeException;
 import com.vdc.vmnbackend.service.EmailService;
 import com.vdc.vmnbackend.service.InvitationService;
@@ -34,18 +35,24 @@ public class InvitationServiceImpl implements InvitationService {
         this.userService = userService;
         this.emailService = emailService;
     }
-    public BasicResDTO createInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO){
+    public BasicResDTO createRoleBasedInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO){
         Boolean existingUser = userService.existsByEmailId(userInviteReqDTO.getEmailId());
         if (existingUser)
             return new BasicResDTO("User Already Exists!", HttpStatus.BAD_REQUEST);
-        InvitationDAO invitationDAO = new InvitationDAO();
-        invitationDAO.setName(userInviteReqDTO.getName());
-        invitationDAO.setReceiverMailId(userInviteReqDTO.getEmailId());
-        invitationDAO.setSender(userDAO);
-        invitationDAO.setToRole(userInviteReqDTO.getRole());
-        invitationRepository.save(invitationDAO);
-        return emailService.sendEmail(invitationDAO.getReceiverMailId(),"Invitation to VMN Platform","Invitation id: "+invitationDAO.getInvId());
+        if(userInviteReqDTO.getRole().equals(Roles.ADMIN) || userInviteReqDTO.getRole().equals(Roles.COACH) || userInviteReqDTO.getRole().equals(Roles.MENTOR))
+        {
+            if(userDAO.getRole().equals(userInviteReqDTO.getRole()))
+                return new BasicResDTO("Invitation cant be sent to the same Role!", HttpStatus.BAD_REQUEST);
+            InvitationDAO invitationDAO = new InvitationDAO();
+            invitationDAO.setName(userInviteReqDTO.getName());
+            invitationDAO.setReceiverMailId(userInviteReqDTO.getEmailId());
+            invitationDAO.setSender(userDAO);
+            invitationDAO.setToRole(userInviteReqDTO.getRole());
+            invitationRepository.save(invitationDAO);
+            return emailService.sendEmail(invitationDAO.getReceiverMailId(),"Invitation to VMN Platform","Invitation id: "+invitationDAO.getInvId());
 
+        }
+        return new BasicResDTO("Invitation cant be sent to the Role!", HttpStatus.BAD_REQUEST);
 
     }
 
@@ -78,11 +85,21 @@ public class InvitationServiceImpl implements InvitationService {
             throw new ApiRuntimeException("Invitation Already Accepted!", HttpStatus.BAD_REQUEST);
         if(invitationDAO.get().getStatus()==InvitationStatus.EXPIRED)
             throw new ApiRuntimeException("Invitation Expired!", HttpStatus.BAD_REQUEST);
+        var current = LocalDateTime.now();
+        if(current.isAfter(invitationDAO.get().getCreatedAt().plusHours(12)))
+        {
+            invitationDAO.get().setStatus(InvitationStatus.EXPIRED);
+            invitationRepository.save(invitationDAO.get());
+            throw new ApiRuntimeException("Invitation Expired!", HttpStatus.BAD_REQUEST);
+        }
         UserSignupReqDTO userSignupReqDTO = new UserSignupReqDTO(inviteBasedUserReqDTO.name(),invitationDAO.get().getReceiverMailId(),inviteBasedUserReqDTO.password(),invitationDAO.get().getToRole(),inviteBasedUserReqDTO.contact(),inviteBasedUserReqDTO.linkedIn(),
                 inviteBasedUserReqDTO.designation());
-        userService.createUser(userSignupReqDTO,invitationDAO.get().getSender().getUid());
-        invitationDAO.get().setStatus(InvitationStatus.ACCEPTED);
+       userService.createUser(userSignupReqDTO,invitationDAO.get().getSender());
+       invitationDAO.get().setStatus(InvitationStatus.ACCEPTED);
+
         invitationRepository.save(invitationDAO.get());
         return new BasicResDTO("User Created!", HttpStatus.OK);
     }
+
+
 }
