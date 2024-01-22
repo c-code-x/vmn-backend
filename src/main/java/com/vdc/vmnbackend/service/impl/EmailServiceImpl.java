@@ -4,6 +4,7 @@ import com.vdc.vmnbackend.dto.res.BasicResDTO;
 import com.vdc.vmnbackend.dto.res.ResponseDTO;
 import com.vdc.vmnbackend.exception.ApiRuntimeException;
 import com.vdc.vmnbackend.service.EmailService;
+import com.vdc.vmnbackend.utility.CommonConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
@@ -30,10 +31,10 @@ public class EmailServiceImpl implements EmailService {
                 message.setSubject(subject);
                 message.setText(body);
                 javaMailSender.send(message);
-                return new BasicResDTO("Mail sent Successfully!!", HttpStatus.CREATED);
+                return new BasicResDTO(CommonConstants.MAIL_SUCCESS, HttpStatus.CREATED);
             } catch (Exception e) {
                 e.printStackTrace();
-                throw new ApiRuntimeException("Error while sending email", HttpStatus.BAD_REQUEST);
+                throw new ApiRuntimeException(CommonConstants.MAIL_ERROR, HttpStatus.BAD_REQUEST);
             }
     }
 }

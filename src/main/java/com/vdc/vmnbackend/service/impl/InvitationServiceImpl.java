@@ -14,6 +14,7 @@ import com.vdc.vmnbackend.exception.ApiRuntimeException;
 import com.vdc.vmnbackend.service.EmailService;
 import com.vdc.vmnbackend.service.InvitationService;
 import com.vdc.vmnbackend.service.UserService;
+import com.vdc.vmnbackend.utility.CommonConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -38,11 +39,11 @@ public class InvitationServiceImpl implements InvitationService {
     public BasicResDTO createRoleBasedInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO){
         Boolean existingUser = userService.existsByEmailId(userInviteReqDTO.getEmailId());
         if (existingUser)
-            return new BasicResDTO("User Already Exists!", HttpStatus.BAD_REQUEST);
+            return new BasicResDTO(CommonConstants.USER_EXITS, HttpStatus.BAD_REQUEST);
         if(userInviteReqDTO.getRole().equals(Roles.ADMIN) || userInviteReqDTO.getRole().equals(Roles.COACH) || userInviteReqDTO.getRole().equals(Roles.MENTOR))
         {
             if(userDAO.getRole().equals(userInviteReqDTO.getRole()))
-                return new BasicResDTO("Invitation cant be sent to the same Role!", HttpStatus.BAD_REQUEST);
+                return new BasicResDTO(CommonConstants.INVITATION_TO_SAMEROLE, HttpStatus.BAD_REQUEST);
             InvitationDAO invitationDAO = new InvitationDAO();
             invitationDAO.setName(userInviteReqDTO.getName());
             invitationDAO.setReceiverMailId(userInviteReqDTO.getEmailId());
@@ -52,7 +53,7 @@ public class InvitationServiceImpl implements InvitationService {
             return emailService.sendEmail(invitationDAO.getReceiverMailId(),"Invitation to VMN Platform","Invitation id: "+invitationDAO.getInvId());
 
         }
-        return new BasicResDTO("Invitation cant be sent to the Role!", HttpStatus.BAD_REQUEST);
+        return new BasicResDTO(CommonConstants.INVITATION_INVALID_ROLE, HttpStatus.BAD_REQUEST);
 
     }
 
@@ -60,45 +61,53 @@ public class InvitationServiceImpl implements InvitationService {
     public ResponseDTO<InvitationDAO> verifyInvitation(UUID token){
         Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(token);
         if(invitationDAO.isEmpty())
-            throw new ApiRuntimeException("Invalid Invitation!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_INVALID, HttpStatus.BAD_REQUEST);
         if(invitationDAO.get().getStatus()==InvitationStatus.ACCEPTED)
-            throw new ApiRuntimeException("Invitation Already Accepted!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_ACCEPTED, HttpStatus.BAD_REQUEST);
         LocalDateTime current = LocalDateTime.now();
         //check if the invitation is expired or not, expiration is just 12 hours from the created time on invitation
         if(invitationDAO.get().getStatus()==InvitationStatus.EXPIRED)
-            throw new ApiRuntimeException("Invitation Expired!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_EXPIRED, HttpStatus.BAD_REQUEST);
         if(current.isAfter(invitationDAO.get().getCreatedAt().plusHours(12)))
         {
             invitationDAO.get().setStatus(InvitationStatus.EXPIRED);
             invitationRepository.save(invitationDAO.get());
-            throw new ApiRuntimeException("Invitation Expired!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_EXPIRED, HttpStatus.BAD_REQUEST);
         }
-        return new ResponseDTO<InvitationDAO>(invitationDAO.get(), new BasicResDTO("Invitation yet pending!", HttpStatus.OK));
+        return new ResponseDTO<InvitationDAO>(invitationDAO.get(), new BasicResDTO(CommonConstants.INVITATION_PENDING, HttpStatus.OK));
     }
 
 
     public BasicResDTO createUserByInvitation(InviteBasedUserReqDTO inviteBasedUserReqDTO, UUID token) {
         Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(token);
         if(invitationDAO.isEmpty())
-            throw new ApiRuntimeException("Invalid Invitation!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_INVALID, HttpStatus.BAD_REQUEST);
         if(invitationDAO.get().getStatus()==InvitationStatus.ACCEPTED)
-            throw new ApiRuntimeException("Invitation Already Accepted!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_ACCEPTED, HttpStatus.BAD_REQUEST);
         if(invitationDAO.get().getStatus()==InvitationStatus.EXPIRED)
-            throw new ApiRuntimeException("Invitation Expired!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_EXPIRED, HttpStatus.BAD_REQUEST);
         var current = LocalDateTime.now();
         if(current.isAfter(invitationDAO.get().getCreatedAt().plusHours(12)))
         {
             invitationDAO.get().setStatus(InvitationStatus.EXPIRED);
             invitationRepository.save(invitationDAO.get());
-            throw new ApiRuntimeException("Invitation Expired!", HttpStatus.BAD_REQUEST);
+            throw new ApiRuntimeException(CommonConstants.INVITATION_EXPIRED, HttpStatus.BAD_REQUEST);
         }
-        UserSignupReqDTO userSignupReqDTO = new UserSignupReqDTO(inviteBasedUserReqDTO.name(),invitationDAO.get().getReceiverMailId(),inviteBasedUserReqDTO.password(),invitationDAO.get().getToRole(),inviteBasedUserReqDTO.contact(),inviteBasedUserReqDTO.linkedIn(),
-                inviteBasedUserReqDTO.designation());
-       userService.createUser(userSignupReqDTO,invitationDAO.get().getSender());
-       invitationDAO.get().setStatus(InvitationStatus.ACCEPTED);
+        try {
+            UserSignupReqDTO userSignupReqDTO = new UserSignupReqDTO(inviteBasedUserReqDTO.name(), invitationDAO.get().getReceiverMailId(), inviteBasedUserReqDTO.password(), invitationDAO.get().getToRole(), inviteBasedUserReqDTO.contact(), inviteBasedUserReqDTO.linkedIn(),
+                    inviteBasedUserReqDTO.designation());
 
-        invitationRepository.save(invitationDAO.get());
-        return new BasicResDTO("User Created!", HttpStatus.OK);
+            userService.createUser(userSignupReqDTO, invitationDAO.get().getSender());
+            invitationDAO.get().setStatus(InvitationStatus.ACCEPTED);
+
+            invitationRepository.save(invitationDAO.get());
+
+            return new BasicResDTO(CommonConstants.USER_CREATED_SUCCESSFULLY, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new BasicResDTO("Error occurred while processing the request", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
 
