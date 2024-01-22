@@ -11,6 +11,7 @@ import com.vdc.vmnbackend.service.impl.TokenServiceImpl;
 import com.vdc.vmnbackend.utility.CommonConstants;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,11 +29,20 @@ public class AuthController {
     private final TokenServiceImpl tokenService;
 
     @Autowired
+    private Environment environment;
+
+    @Autowired
     public AuthController(AuthenticationManager authenticationManager, UserService userService, TokenServiceImpl tokenService)
     {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.tokenService = tokenService;
+    }
+    @GetMapping("test")
+    public String test() {
+
+        return environment.getProperty("MAIL_PASSWORD");
+//        return "Hello";
     }
 
     @PostMapping("login")
