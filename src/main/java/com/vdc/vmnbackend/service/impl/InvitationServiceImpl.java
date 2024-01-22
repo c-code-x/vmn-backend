@@ -50,7 +50,7 @@ public class InvitationServiceImpl implements InvitationService {
             invitationDAO.setSender(userDAO);
             invitationDAO.setToRole(userInviteReqDTO.getRole());
             invitationRepository.save(invitationDAO);
-            return emailService.sendEmail(invitationDAO.getReceiverMailId(),"Invitation to VMN Platform","Invitation id: "+invitationDAO.getInvId());
+            return emailService.sendInvitationEmail(invitationDAO, userDAO.getName());
 
         }
         return new BasicResDTO(CommonConstants.INVITATION_INVALID_ROLE, HttpStatus.BAD_REQUEST);
