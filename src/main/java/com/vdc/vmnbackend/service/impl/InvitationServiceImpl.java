@@ -37,6 +37,8 @@ public class InvitationServiceImpl implements InvitationService {
         this.emailService = emailService;
     }
     public BasicResDTO createRoleBasedInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO){
+        if (invitationExistsByEmailId(userInviteReqDTO.getEmailId()))
+            return new BasicResDTO(CommonConstants.INVITATION_ALREADY_SENT, HttpStatus.BAD_REQUEST);
         Boolean existingUser = userService.existsByEmailId(userInviteReqDTO.getEmailId());
         if (existingUser)
             return new BasicResDTO(CommonConstants.USER_EXITS, HttpStatus.BAD_REQUEST);
@@ -50,10 +52,21 @@ public class InvitationServiceImpl implements InvitationService {
             invitationDAO.setSender(userDAO);
             invitationDAO.setToRole(userInviteReqDTO.getRole());
             invitationRepository.save(invitationDAO);
-            return emailService.sendEmail(invitationDAO.getReceiverMailId(),"Invitation to VMN Platform","Invitation id: "+invitationDAO.getInvId());
+            return emailService.sendInvitationEmail(invitationDAO, userDAO.getName());
 
         }
         return new BasicResDTO(CommonConstants.INVITATION_INVALID_ROLE, HttpStatus.BAD_REQUEST);
+
+    }
+    public BasicResDTO resendUserRoleBasedInvite(UUID invId, UserDAO userDAO){
+        Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(invId);
+        if(invitationDAO.isEmpty())
+            throw new ApiRuntimeException(CommonConstants.INVITATION_INVALID, HttpStatus.BAD_REQUEST);
+        if(!invitationDAO.get().getSender().equals(userDAO))
+            throw new ApiRuntimeException(CommonConstants.UNAUTHORISED_OPERATION, HttpStatus.UNAUTHORIZED);
+        if (invitationDAO.get().getStatus()==InvitationStatus.ACCEPTED)
+            throw new ApiRuntimeException(CommonConstants.INVITATION_ACCEPTED, HttpStatus.BAD_REQUEST);
+        return emailService.sendInvitationEmail(invitationDAO.get(), userDAO.getName());
 
     }
 
@@ -108,6 +121,9 @@ public class InvitationServiceImpl implements InvitationService {
             return new BasicResDTO("Error occurred while processing the request", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+    boolean invitationExistsByEmailId(String emailId) {
+        return invitationRepository.existsByReceiverMailId(emailId);
     }
 
 

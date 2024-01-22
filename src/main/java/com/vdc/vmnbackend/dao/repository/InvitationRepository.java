@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface InvitationRepository extends JpaRepository<InvitationDAO, UUID> {
 
     Optional<InvitationDAO> findByInvId(UUID token);
+
+    boolean existsByReceiverMailId(String emailId);
 }

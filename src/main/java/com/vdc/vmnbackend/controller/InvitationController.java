@@ -31,12 +31,17 @@ public class InvitationController {
         return invitationService.createRoleBasedInvite(userInviteReqDTO, userDAO);
 //        return authentication.getName();
     }
+    @PostMapping("resend")
+    public BasicResDTO resendInvite(Authentication authentication, @RequestParam("invId") UUID invId){
+        UserDAO userDAO = userService.getByEmail(authentication.getName());
+        return invitationService.resendUserRoleBasedInvite(invId, userDAO);
+    }
 
-    @GetMapping("verify-invite")
+    @GetMapping("verifyInvite")
     public ResponseDTO<InvitationDAO> verifyInvite(@RequestParam("token") UUID token){
         return invitationService.verifyInvitation(token);
     }
-    @PostMapping("accept-invitation")
+    @PostMapping("acceptInvitation")
     public BasicResDTO createUserByInvitation(@Param ("token") UUID token ,@RequestBody @Valid InviteBasedUserReqDTO inviteBasedUserReqDTO){
        return invitationService.createUserByInvitation(inviteBasedUserReqDTO,token);
     }

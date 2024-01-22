@@ -15,4 +15,5 @@ public interface InvitationService {
     public ResponseDTO<InvitationDAO> verifyInvitation(UUID token);
 
     BasicResDTO createUserByInvitation(InviteBasedUserReqDTO inviteBasedUserReqDTO, UUID token);
+    BasicResDTO resendUserRoleBasedInvite(UUID invId, UserDAO userDAO);
 }

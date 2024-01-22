@@ -25,4 +25,6 @@ public class CommonConstants {
 
     public static final String INVITE_URLS = "/invite/**";
 
+    public static final String INVITATION_ALREADY_SENT = "Invitation Already Sent!";
+    public static final String UNAUTHORISED_OPERATION = "Unauthorised Operation!";
 }
