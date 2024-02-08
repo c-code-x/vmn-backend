@@ -2,6 +2,7 @@ package com.vdc.vmnbackend.service;
 
 import com.vdc.vmnbackend.dao.InvitationDAO;
 import com.vdc.vmnbackend.dao.UserDAO;
+import com.vdc.vmnbackend.dao.VentureDAO;
 import com.vdc.vmnbackend.dto.req.InviteBasedUserReqDTO;
 import com.vdc.vmnbackend.dto.req.UserInviteReqDTO;
 import com.vdc.vmnbackend.dto.res.BasicResDTO;
@@ -15,5 +16,7 @@ public interface InvitationService {
     public ResponseDTO<InvitationDAO> verifyInvitation(UUID token);
 
     BasicResDTO createUserByInvitation(InviteBasedUserReqDTO inviteBasedUserReqDTO, UUID token);
-    BasicResDTO resendUserRoleBasedInvite(UUID invId, UserDAO userDAO);
+    BasicResDTO resendInvite(UUID invId, UserDAO userDAO);
+
+    BasicResDTO createMenteeInvite(VentureDAO ventureId, UserDAO userDAO, UserInviteReqDTO userInviteReqDTO) ;
 }

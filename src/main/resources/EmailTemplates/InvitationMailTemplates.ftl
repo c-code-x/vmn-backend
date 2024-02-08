@@ -44,7 +44,11 @@
         <p>Hello <b>${name}</b>,</p>
         <p>
             I am <b>${senderName}</b>, Venture Development Cell, GITAM University.
-            You have been invited to join the Venture Mentor Network as <b>${role}</b>. Please click on the link below to register.
+            You have been invited to join the Venture Mentor Network as <b>${role}</b>.
+            <#if role == "MENTEE">
+                You have been invited to a Venture Mentor Network as <b>${role}</b> under the venture <b>${venture}</b>.
+            </#if>
+            Please click on the link below to register.
         </p>
         <p>
             <a href=''>Links under development but your token is: <b>${token}</b></b>

@@ -36,7 +36,8 @@ public class CoachDAO {
     private Campus campus;
 
     @Column(name = "bio")
-    private String bio;
+    @Builder.Default
+    private String bio = "I am a coach This is My Bio!";
 
 
 }

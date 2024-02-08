@@ -34,5 +34,6 @@ public class AdminDAO {
     private Campus campus;
 
     @Column(name = "bio")
-    private String bio;
+    @Builder.Default
+    private String bio = "I am an admin, This is My Bio!";
 }

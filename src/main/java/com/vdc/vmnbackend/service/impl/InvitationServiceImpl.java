@@ -2,6 +2,7 @@ package com.vdc.vmnbackend.service.impl;
 
 import com.vdc.vmnbackend.dao.InvitationDAO;
 import com.vdc.vmnbackend.dao.UserDAO;
+import com.vdc.vmnbackend.dao.VentureDAO;
 import com.vdc.vmnbackend.dao.repository.InvitationRepository;
 import com.vdc.vmnbackend.dto.req.InviteBasedUserReqDTO;
 import com.vdc.vmnbackend.dto.req.UserInviteReqDTO;
@@ -41,7 +42,7 @@ public class InvitationServiceImpl implements InvitationService {
             return new BasicResDTO(CommonConstants.INVITATION_ALREADY_SENT, HttpStatus.BAD_REQUEST);
         Boolean existingUser = userService.existsByEmailId(userInviteReqDTO.getEmailId());
         if (existingUser)
-            return new BasicResDTO(CommonConstants.USER_EXITS, HttpStatus.BAD_REQUEST);
+            return new BasicResDTO(CommonConstants.USER_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         if(userInviteReqDTO.getRole().equals(Roles.ADMIN) || userInviteReqDTO.getRole().equals(Roles.COACH) || userInviteReqDTO.getRole().equals(Roles.MENTOR))
         {
             if(userDAO.getRole().equals(userInviteReqDTO.getRole()))
@@ -58,7 +59,7 @@ public class InvitationServiceImpl implements InvitationService {
         return new BasicResDTO(CommonConstants.INVITATION_INVALID_ROLE, HttpStatus.BAD_REQUEST);
 
     }
-    public BasicResDTO resendUserRoleBasedInvite(UUID invId, UserDAO userDAO){
+    public BasicResDTO resendInvite(UUID invId, UserDAO userDAO){
         Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(invId);
         if(invitationDAO.isEmpty())
             throw new ApiRuntimeException(CommonConstants.INVITATION_INVALID, HttpStatus.BAD_REQUEST);
@@ -67,7 +68,25 @@ public class InvitationServiceImpl implements InvitationService {
         if (invitationDAO.get().getStatus()==InvitationStatus.ACCEPTED)
             throw new ApiRuntimeException(CommonConstants.INVITATION_ACCEPTED, HttpStatus.BAD_REQUEST);
         return emailService.sendInvitationEmail(invitationDAO.get(), userDAO.getName());
+    }
+    public BasicResDTO createMenteeInvite(VentureDAO ventureId, UserDAO userDAO, UserInviteReqDTO userInviteReqDTO) {
+        if (invitationExistsByEmailId(userInviteReqDTO.getEmailId()))
+            return new BasicResDTO(CommonConstants.INVITATION_ALREADY_SENT, HttpStatus.BAD_REQUEST);
+        if(!ventureId.getCoachId().equals(userDAO))
+            return new BasicResDTO(CommonConstants.UNAUTHORISED_OPERATION, HttpStatus.UNAUTHORIZED);
+        Boolean existingUser = userService.existsByEmailId(userInviteReqDTO.getEmailId());
 
+        if (existingUser)
+            return new BasicResDTO(CommonConstants.USER_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
+        InvitationDAO invitationDAO = InvitationDAO.builder()
+                .name(userInviteReqDTO.getName())
+                .receiverMailId(userInviteReqDTO.getEmailId())
+                .sender(userDAO)
+                .toRole(Roles.MENTEE)
+                .venture(ventureId)
+                .build();
+        invitationRepository.save(invitationDAO);
+        return emailService.sendInvitationEmail(invitationDAO, userDAO.getName());
     }
 
 
@@ -110,7 +129,7 @@ public class InvitationServiceImpl implements InvitationService {
             UserSignupReqDTO userSignupReqDTO = new UserSignupReqDTO(inviteBasedUserReqDTO.name(), invitationDAO.get().getReceiverMailId(), inviteBasedUserReqDTO.password(), invitationDAO.get().getToRole(), inviteBasedUserReqDTO.contact(), inviteBasedUserReqDTO.linkedIn(),
                     inviteBasedUserReqDTO.designation());
 
-            userService.createUser(userSignupReqDTO, invitationDAO.get().getSender());
+            userService.createUser(userSignupReqDTO, invitationDAO.get());
             invitationDAO.get().setStatus(InvitationStatus.ACCEPTED);
 
             invitationRepository.save(invitationDAO.get());

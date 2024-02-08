@@ -27,23 +27,23 @@ public class VentureDAO {
     @JoinColumn(name = "coachId", referencedColumnName = "uid")
     private UserDAO coachId;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "Campus", nullable = false)
+    @Column(name = "Campus")
     private Campus campus;
 
-    @Column(name = "tag", nullable = false, updatable = false)
+    @Column(name = "tag", updatable = false)
     private String tag;
 
-    @Column(name = "stage", nullable = false)
+    @Column(name = "stage")
     private VentureStage stage;
 
-    @Column(name = "serviceArea", nullable = false)
+    @Column(name = "serviceArea")
     private String serviceArea;
 
-    @Column(name = "bio", nullable = false)
-    private String bio;
+    @Column(name = "bio")
+    private String bio = "This is a venture bio";
 
     @Column(name = "sector", nullable = false)
     private String sector;

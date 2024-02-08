@@ -1,4 +1,4 @@
-package com.vdc.vmnbackend.Config;
+package com.vdc.vmnbackend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

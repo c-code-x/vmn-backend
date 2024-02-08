@@ -1,4 +1,4 @@
-package com.vdc.vmnbackend.Config;
+package com.vdc.vmnbackend.config;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.vdc.vmnbackend.service.impl.UserDetailsServiceImpl;
 import com.vdc.vmnbackend.utility.CommonConstants;
