@@ -16,7 +16,9 @@ public interface InvitationService {
     public ResponseDTO<InvitationDAO> verifyInvitation(UUID token);
 
     BasicResDTO createUserByInvitation(InviteBasedUserReqDTO inviteBasedUserReqDTO, UUID token);
-    BasicResDTO resendInvite(UUID invId, UserDAO userDAO);
+    BasicResDTO resendInvite(InvitationDAO invitationDAO, UserDAO userDAO);
+    InvitationDAO getInvitationByEmailId(String emailId);
+    public InvitationDAO getInvitationByInvId(UUID invId);
 
     BasicResDTO createMenteeInvite(VentureDAO ventureId, UserDAO userDAO, UserInviteReqDTO userInviteReqDTO) ;
 }

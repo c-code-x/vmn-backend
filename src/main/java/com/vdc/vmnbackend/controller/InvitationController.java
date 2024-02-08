@@ -39,22 +39,22 @@ public class InvitationController {
         return invitationService.createRoleBasedInvite(userInviteReqDTO, userDAO);
 //        return authentication.getName();
     }
-    @PostMapping("resend")
-    public BasicResDTO resendInvite(Authentication authentication, @RequestParam("invId") UUID invId){
+    @PostMapping("resend/{invId}")
+    public BasicResDTO resendInvite(Authentication authentication, @PathVariable UUID invId){
         UserDAO userDAO = userService.getByEmail(authentication.getName());
-        return invitationService.resendInvite(invId, userDAO);
+        return invitationService.resendInvite(invitationService.getInvitationByInvId(invId), userDAO);
     }
 
-    @GetMapping("verifyInvite")
-    public ResponseDTO<InvitationDAO> verifyInvite(@RequestParam("token") UUID token){
+    @GetMapping("verifyInvite/{token}")
+    public ResponseDTO<InvitationDAO> verifyInvite(@PathVariable UUID token){
         return invitationService.verifyInvitation(token);
     }
-    @PostMapping("acceptInvitation")
-    public BasicResDTO createUserByInvitation(@Param ("token") UUID token ,@RequestBody @Valid InviteBasedUserReqDTO inviteBasedUserReqDTO){
+    @PostMapping("acceptInvitation/{token}")
+    public BasicResDTO createUserByInvitation(@PathVariable UUID token ,@RequestBody @Valid InviteBasedUserReqDTO inviteBasedUserReqDTO){
        return invitationService.createUserByInvitation(inviteBasedUserReqDTO,token);
     }
-    @PostMapping("new/mentee")
-    public BasicResDTO createMenteeInvite(@Param("ventureId") UUID ventureId, @RequestBody @Valid UserInviteReqDTO userInviteReqDTO, Authentication authentication){
+    @PostMapping("new/mentee/{ventureId}")
+    public BasicResDTO createMenteeInvite(@PathVariable UUID ventureId, @RequestBody @Valid UserInviteReqDTO userInviteReqDTO, Authentication authentication){
         UserDAO invitedBy = userService.getByEmail(authentication.getName());
         Optional<VentureDAO> ventureDAO = ventureService.getVentureById(ventureId);
         if(ventureDAO.isEmpty())

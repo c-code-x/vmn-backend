@@ -44,14 +44,11 @@ public class InvitationDAO {
     private InvitationStatus status = InvitationStatus.PENDING;
 
     @Builder.Default
-    @Column(updatable = false, nullable = false)
+    @Column( nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "ventureId")
     private VentureDAO venture;
-
-    @Column(updatable = false)
-    private LocalDateTime updatedAt;
 
 }
