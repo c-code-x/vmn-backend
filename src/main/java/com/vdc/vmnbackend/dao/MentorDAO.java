@@ -30,7 +30,8 @@ public class MentorDAO {
     private UserDAO adminId;
 
     @Column(name = "bio")
-    private String bio;
+    @Builder.Default
+    private String bio = "I am a mentor, This is My Bio!";
 
     @Column(name = "expertise")
     private String expertise;

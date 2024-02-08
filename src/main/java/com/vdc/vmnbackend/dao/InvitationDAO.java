@@ -47,6 +47,10 @@ public class InvitationDAO {
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @ManyToOne
+    @JoinColumn(name = "ventureId")
+    private VentureDAO venture;
+
     @Column(updatable = false)
     private LocalDateTime updatedAt;
 

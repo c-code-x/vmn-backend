@@ -5,5 +5,5 @@ public enum Roles {
     ADMIN,
     MENTOR,
     COACH,
-    USER
+    MENTEE, USER
 }
