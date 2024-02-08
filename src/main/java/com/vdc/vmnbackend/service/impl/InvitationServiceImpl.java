@@ -38,8 +38,19 @@ public class InvitationServiceImpl implements InvitationService {
         this.emailService = emailService;
     }
     public BasicResDTO createRoleBasedInvite(UserInviteReqDTO userInviteReqDTO, UserDAO userDAO){
-        if (invitationExistsByEmailId(userInviteReqDTO.getEmailId()))
-            return new BasicResDTO(CommonConstants.INVITATION_ALREADY_SENT, HttpStatus.BAD_REQUEST);
+        if (invitationExistsByEmailId(userInviteReqDTO.getEmailId()) && !getInvitationByEmailId(userInviteReqDTO.getEmailId()).getStatus().equals(InvitationStatus.EXPIRED)){
+            InvitationDAO invitationDAO = getInvitationByEmailId(userInviteReqDTO.getEmailId());
+            if(!LocalDateTime.now().isAfter(invitationDAO.getCreatedAt().plusHours(ExpiryHours))){
+                return new BasicResDTO(CommonConstants.INVITATION_ALREADY_SENT, HttpStatus.BAD_REQUEST);
+            }
+        }
+        if(invitationExistsByEmailId(userInviteReqDTO.getEmailId())){
+            InvitationDAO invitationDAO = getInvitationByEmailId(userInviteReqDTO.getEmailId());
+            invitationDAO.setStatus(InvitationStatus.PENDING);
+            invitationDAO.setName(userInviteReqDTO.getName());
+            invitationDAO.setToRole(userInviteReqDTO.getRole());
+            return resendInvite(invitationDAO,userDAO);
+        }
         Boolean existingUser = userService.existsByEmailId(userInviteReqDTO.getEmailId());
         if (existingUser)
             return new BasicResDTO(CommonConstants.USER_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
@@ -59,15 +70,14 @@ public class InvitationServiceImpl implements InvitationService {
         return new BasicResDTO(CommonConstants.INVITATION_INVALID_ROLE, HttpStatus.BAD_REQUEST);
 
     }
-    public BasicResDTO resendInvite(UUID invId, UserDAO userDAO){
-        Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(invId);
-        if(invitationDAO.isEmpty())
-            throw new ApiRuntimeException(CommonConstants.INVITATION_INVALID, HttpStatus.BAD_REQUEST);
-        if(!invitationDAO.get().getSender().equals(userDAO))
+    public BasicResDTO resendInvite(InvitationDAO invitationDAO, UserDAO userDAO){
+        if(!invitationDAO.getSender().getUid().equals(userDAO.getUid()))
             throw new ApiRuntimeException(CommonConstants.UNAUTHORISED_OPERATION, HttpStatus.UNAUTHORIZED);
-        if (invitationDAO.get().getStatus()==InvitationStatus.ACCEPTED)
+        if (invitationDAO.getStatus()==InvitationStatus.ACCEPTED)
             throw new ApiRuntimeException(CommonConstants.INVITATION_ACCEPTED, HttpStatus.BAD_REQUEST);
-        return emailService.sendInvitationEmail(invitationDAO.get(), userDAO.getName());
+        invitationDAO.setCreatedAt(LocalDateTime.now());
+        InvitationDAO updatedInvitatioDAO = invitationRepository.save(invitationDAO);
+        return emailService.sendInvitationEmail(invitationDAO, userDAO.getName());
     }
     public BasicResDTO createMenteeInvite(VentureDAO ventureId, UserDAO userDAO, UserInviteReqDTO userInviteReqDTO) {
         if (invitationExistsByEmailId(userInviteReqDTO.getEmailId()))
@@ -97,10 +107,10 @@ public class InvitationServiceImpl implements InvitationService {
         if(invitationDAO.get().getStatus()==InvitationStatus.ACCEPTED)
             throw new ApiRuntimeException(CommonConstants.INVITATION_ACCEPTED, HttpStatus.BAD_REQUEST);
         LocalDateTime current = LocalDateTime.now();
-        //check if the invitation is expired or not, expiration is just 12 hours from the created time on invitation
+        //check if the invitation is expired or not, expiration is just Expiry hours from the created time on invitation
         if(invitationDAO.get().getStatus()==InvitationStatus.EXPIRED)
             throw new ApiRuntimeException(CommonConstants.INVITATION_EXPIRED, HttpStatus.BAD_REQUEST);
-        if(current.isAfter(invitationDAO.get().getCreatedAt().plusHours(12)))
+        if(current.isAfter(invitationDAO.get().getCreatedAt().plusHours(ExpiryHours)))
         {
             invitationDAO.get().setStatus(InvitationStatus.EXPIRED);
             invitationRepository.save(invitationDAO.get());
@@ -119,7 +129,7 @@ public class InvitationServiceImpl implements InvitationService {
         if(invitationDAO.get().getStatus()==InvitationStatus.EXPIRED)
             throw new ApiRuntimeException(CommonConstants.INVITATION_EXPIRED, HttpStatus.BAD_REQUEST);
         var current = LocalDateTime.now();
-        if(current.isAfter(invitationDAO.get().getCreatedAt().plusHours(12)))
+        if(current.isAfter(invitationDAO.get().getCreatedAt().plusHours(ExpiryHours)))
         {
             invitationDAO.get().setStatus(InvitationStatus.EXPIRED);
             invitationRepository.save(invitationDAO.get());
@@ -141,8 +151,20 @@ public class InvitationServiceImpl implements InvitationService {
         }
 
     }
+    public InvitationDAO getInvitationByEmailId(String emailId) {
+       Optional<InvitationDAO> invitationDAO = invitationRepository.findByReceiverMailId(emailId);
+       if(invitationDAO.isEmpty())
+           throw new ApiRuntimeException(CommonConstants.INVITATION_INVALID, HttpStatus.BAD_REQUEST);
+       return invitationDAO.get();
+    }
     boolean invitationExistsByEmailId(String emailId) {
         return invitationRepository.existsByReceiverMailId(emailId);
+    }
+    public InvitationDAO getInvitationByInvId(UUID invId) {
+        Optional<InvitationDAO> invitationDAO = invitationRepository.findByInvId(invId);
+        if(invitationDAO.isEmpty())
+            throw new ApiRuntimeException(CommonConstants.INVITATION_INVALID, HttpStatus.BAD_REQUEST);
+        return invitationDAO.get();
     }
 
 
