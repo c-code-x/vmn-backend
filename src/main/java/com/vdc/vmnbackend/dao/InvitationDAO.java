@@ -7,9 +7,11 @@ import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
+/**
+ * Represents an invitation entity in the system.
+ */
 @Entity
 @Builder
 @Getter
@@ -20,35 +22,58 @@ import java.util.UUID;
 @Table(name = "invitation")
 public class InvitationDAO {
 
+    /**
+     * The unique identifier for the invitation.
+     */
     @Id
     @GeneratedValue(generator = "UUID")
     @UuidGenerator
     private UUID invId;
 
+    /**
+     * The user who sent the invitation.
+     */
     @ManyToOne
-    @JoinColumn(name = "senderId" ,nullable = false, updatable = false)
+    @JoinColumn(name = "senderId", nullable = false, updatable = false)
     private UserDAO sender;
 
-   @Column(updatable = false,nullable = false)
-   private String receiverMailId;
+    /**
+     * The email address of the receiver of the invitation.
+     */
+    @Column(updatable = false, nullable = false)
+    private String receiverMailId;
 
-    @Column(updatable = false,nullable = false)
+    /**
+     * The name of the receiver of the invitation.
+     */
+    @Column(updatable = false, nullable = false)
     private String name;
 
-    @Column(updatable = false,nullable = false)
+    /**
+     * The role to which the receiver is invited.
+     */
+    @Column(updatable = false, nullable = false)
     private Roles toRole;
 
+    /**
+     * The status of the invitation.
+     */
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InvitationStatus status = InvitationStatus.PENDING;
 
+    /**
+     * The timestamp when the invitation was created.
+     */
     @Builder.Default
-    @Column( nullable = false)
+    @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    /**
+     * The venture associated with the invitation (if any).
+     */
     @ManyToOne
     @JoinColumn(name = "ventureId")
     private VentureDAO venture;
-
 }

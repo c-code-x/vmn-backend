@@ -1,4 +1,5 @@
 package com.vdc.vmnbackend.config;
+
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.vdc.vmnbackend.service.impl.UserDetailsServiceImpl;
 import com.vdc.vmnbackend.utility.CommonConstants;
@@ -28,10 +29,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * Configuration class for setting up security configurations, including authentication and authorization.
+ */
 @Configuration
 @EnableWebSecurity
 @Slf4j
 public class SecurityConfiguration {
+
     private static final String[] PUBLIC_URLS = {
             "/auth/**",
             "/invite/verify-invite",
@@ -41,15 +46,32 @@ public class SecurityConfiguration {
     private final String jwtKey;
     private final UserDetailsServiceImpl userDetailsService;
 
+    /**
+     * Constructor for SecurityConfiguration.
+     *
+     * @param jwtKey             The JWT key used for token signing and verification.
+     * @param userDetailsService The service for loading user details for authentication.
+     */
     public SecurityConfiguration(@Value("${jwt.key}") String jwtKey, UserDetailsServiceImpl userDetailsService) {
         this.jwtKey = jwtKey;
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Creates an AccessDeniedHandler bean.
+     *
+     * @return An AccessDeniedHandler implementation.
+     */
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return new AccessDeniedHandlerImpl();
     }
+
+    /**
+     * Configures CORS (Cross-Origin Resource Sharing) for the application.
+     *
+     * @return A CorsConfigurationSource for CORS configuration.
+     */
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -62,11 +84,17 @@ public class SecurityConfiguration {
         return source;
     }
 
+    /**
+     * Configures the security filter chain for API endpoints.
+     *
+     * @param http The HttpSecurity object for configuring security.
+     * @return A SecurityFilterChain for API endpoints.
+     * @throws Exception If an error occurs during configuration.
+     */
     @Bean
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-
         http
-                .csrf( csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(PUBLIC_URLS)
                         .permitAll()
@@ -76,31 +104,50 @@ public class SecurityConfiguration {
                         .anyRequest()
                         .authenticated()
                 )
-                .exceptionHandling(exceptionHandlingConfigurer-> exceptionHandlingConfigurer.accessDeniedHandler(accessDeniedHandler()))
+                .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer.accessDeniedHandler(accessDeniedHandler()))
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-
 
         return http.build();
     }
 
+    /**
+     * Creates a BCryptPasswordEncoder bean for password encoding.
+     *
+     * @return A BCryptPasswordEncoder instance.
+     */
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder(9);
     }
+
+    /**
+     * Creates a JwtEncoder bean for JWT token encoding.
+     *
+     * @return A JwtEncoder instance.
+     */
     @Bean
     JwtEncoder jwtEncoder() {
-
         return new NimbusJwtEncoder(new ImmutableSecret<>(jwtKey.getBytes()));
     }
 
-
+    /**
+     * Creates a JwtDecoder bean for JWT token decoding.
+     *
+     * @return A JwtDecoder instance.
+     */
     @Bean
     public JwtDecoder jwtDecoder() {
         byte[] bytes = jwtKey.getBytes();
         SecretKeySpec originalKey = new SecretKeySpec(bytes, 0, bytes.length, "RSA");
         return NimbusJwtDecoder.withSecretKey(originalKey).macAlgorithm(MacAlgorithm.HS512).build();
     }
+
+    /**
+     * Creates an AuthenticationManager bean for authentication.
+     *
+     * @return An AuthenticationManager instance.
+     */
     @Bean
     public AuthenticationManager authenticationManagerBean() {
         var authProvider = new DaoAuthenticationProvider();
@@ -108,7 +155,4 @@ public class SecurityConfiguration {
         authProvider.setPasswordEncoder(bCryptPasswordEncoder());
         return new ProviderManager(authProvider);
     }
-
 }
-
-
