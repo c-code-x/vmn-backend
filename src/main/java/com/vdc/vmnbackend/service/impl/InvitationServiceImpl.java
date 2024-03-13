@@ -79,6 +79,10 @@ public class InvitationServiceImpl implements InvitationService {
         InvitationDAO updatedInvitatioDAO = invitationRepository.save(invitationDAO);
         return emailService.sendInvitationEmail(invitationDAO, userDAO.getName());
     }
+    public boolean checkInvitationExistence(String emailId) {
+        return invitationExistsByEmailId(emailId);
+    }
+
     public BasicResDTO createMenteeInvite(VentureDAO ventureId, UserDAO userDAO, UserInviteReqDTO userInviteReqDTO) {
         if (invitationExistsByEmailId(userInviteReqDTO.getEmailId()))
             return new BasicResDTO(CommonConstants.INVITATION_ALREADY_SENT, HttpStatus.BAD_REQUEST);
