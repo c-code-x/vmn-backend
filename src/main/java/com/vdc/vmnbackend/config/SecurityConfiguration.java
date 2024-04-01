@@ -13,6 +13,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -58,6 +59,35 @@ public class SecurityConfiguration {
     }
 
     /**
+     * Configures the security filter chain for API endpoints.
+     *
+     * @param http The HttpSecurity object for configuring security.
+     * @return A SecurityFilterChain for API endpoints.
+     * @throws Exception If an error occurs during configuration.
+     */
+    @Bean
+    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(PUBLIC_URLS)
+                        .permitAll()
+                        .requestMatchers(CommonConstants.INVITE_URLS)
+                        .hasAnyAuthority(CommonConstants.SUPER_ADMIN_ROLE,
+                                CommonConstants.ADMIN_ROLE)
+                        .anyRequest()
+                        .authenticated()
+                )
+                .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer.accessDeniedHandler(accessDeniedHandler()))
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+
+        return http.build();
+    }
+
+
+    /**
      * Creates an AccessDeniedHandler bean.
      *
      * @return An AccessDeniedHandler implementation.
@@ -84,32 +114,6 @@ public class SecurityConfiguration {
         return source;
     }
 
-    /**
-     * Configures the security filter chain for API endpoints.
-     *
-     * @param http The HttpSecurity object for configuring security.
-     * @return A SecurityFilterChain for API endpoints.
-     * @throws Exception If an error occurs during configuration.
-     */
-    @Bean
-    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(PUBLIC_URLS)
-                        .permitAll()
-                        .requestMatchers(CommonConstants.INVITE_URLS)
-                        .hasAnyAuthority(CommonConstants.SUPER_ADMIN_ROLE,
-                                CommonConstants.ADMIN_ROLE)
-                        .anyRequest()
-                        .authenticated()
-                )
-                .exceptionHandling(exceptionHandlingConfigurer -> exceptionHandlingConfigurer.accessDeniedHandler(accessDeniedHandler()))
-                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-
-        return http.build();
-    }
 
     /**
      * Creates a BCryptPasswordEncoder bean for password encoding.
