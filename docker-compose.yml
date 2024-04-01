@@ -2,31 +2,26 @@ version: '3.7'
 
 services:
   # DB
-  vmn-db:
-    image: postgres:14-alpine
-    container_name: vmn-db
-    volumes:
-      - vmn-db-data:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_DB=vmn
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
 
   # server
   vmn-server:
     build: ./
+    image: vmn-server-image
     container_name: vmn-server
     environment:
       - DB_SERVER=vmn-db
       - POSTGRES_DB=vmn
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+      - PORT=8080
+      - JWT_KEY=PyVjynySBpFOs2uSpoON6ge4DV/U+QmBpA7LGh0aQvfoceQbruI6gCQaUxJL5f6w
+      - MAIL_HOST=smtp.gmail.com
+      - MAIL_PASSWORD=avxa vvxm emcs uklq
+      - MAIL_USERNAME=vmn@gitam.edu
+      - DATABASE_CONNECTION_URL=jdbc:postgresql://ep-gentle-cake-a1a28msa.ap-southeast-1.aws.neon.tech/VMN?sslmode=require
+      - DATABASE_PASSWORD=Hy5TDhMnJtl9
+      - DATABASE_USERNAME=VMN_owner
     ports:
       - 8080:8080
-    depends_on:
-      - vmn-db
 
-volumes:
-  vmn-db-data:
+

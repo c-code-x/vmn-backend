@@ -29,13 +29,12 @@ public class VentureServiceImpl implements VentureService {
     }
 
     public BasicResDTO createVenture(InviteVentureReqDTO inviteVentureReqDTO, UserDAO userDAO) {
-        VentureDAO ventureDAO = VentureDAO.builder()
-                .name(inviteVentureReqDTO.ventureName())
-                .campus(userService.getCampus(userDAO))
-                .stage(inviteVentureReqDTO.ventureStage())
-                .coachId(userDAO)
-                .tag(ventureTagGenerator(userService.getCampus(userDAO)))
-                .build();
+        VentureDAO ventureDAO = new VentureDAO();
+        ventureDAO.setName(inviteVentureReqDTO.ventureName());
+        ventureDAO.setCampus(userService.getCampus(userDAO));
+        ventureDAO.setStage(inviteVentureReqDTO.ventureStage());
+        ventureDAO.setCoachId(userDAO);
+        ventureDAO.setTag(ventureTagGenerator(userService.getCampus(userDAO)));
         ventureRepository.save(ventureDAO);
         return new BasicResDTO("Venture created successfully", HttpStatus.OK);
     }
@@ -50,7 +49,7 @@ public class VentureServiceImpl implements VentureService {
 
     String ventureTagGenerator(Campus campus) {
         long cnt = ventureRepository.findAll().stream().filter(ventureDAO -> ventureDAO.getCampus() == campus).count() + 1;
-        String cmp = (campus == Campus.Bengaluru || campus == Campus.Vishakahapatnam) ? ((campus == Campus.Bengaluru) ? "BLR":"HYD") : "VZG";
+        String cmp = (campus == Campus.Bengaluru || campus == Campus.Vishakhapatnam) ? ((campus == Campus.Bengaluru) ? "BLR":"HYD") : "VZG";
         return (cmp + String.format("%04d", cnt));
     }
 }
