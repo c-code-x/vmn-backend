@@ -12,12 +12,12 @@ import java.util.UUID;
  * Represents a venture entity in the system.
  */
 @Entity
-@Builder
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@Builder
 @Table(name = "venture")
 public class VentureDAO {
 

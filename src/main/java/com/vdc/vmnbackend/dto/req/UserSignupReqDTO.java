@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 /**
  * Represents a request DTO for user sign-up with required user details.
  */
-@NoArgsConstructor
-@AllArgsConstructor
 public record UserSignupReqDTO(
         /**
          * The name of the user signing up.

@@ -7,7 +7,6 @@ import lombok.Data;
 /**
  * Represents a request DTO for user sign-in with provided credentials.
  */
-@Data
 public record UserSigninReqDTO(
         /**
          * The email address of the user signing in.
