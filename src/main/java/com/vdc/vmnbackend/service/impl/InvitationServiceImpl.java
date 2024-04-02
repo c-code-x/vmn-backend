@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,7 +31,7 @@ public class InvitationServiceImpl implements InvitationService {
 
     private final EmailService emailService;
 
-    private final int ExpiryHours = 12;
+    private final int ExpiryHours = 24;
     public InvitationServiceImpl(InvitationRepository invitationRepository, UserService userService, EmailService emailService){
 
         this.invitationRepository = invitationRepository;
@@ -76,6 +77,7 @@ public class InvitationServiceImpl implements InvitationService {
         if (invitationDAO.getStatus()==InvitationStatus.ACCEPTED)
             throw new ApiRuntimeException(CommonConstants.INVITATION_ACCEPTED, HttpStatus.BAD_REQUEST);
         invitationDAO.setCreatedAt(LocalDateTime.now());
+        invitationDAO.setStatus(InvitationStatus.PENDING);
         InvitationDAO updatedInvitatioDAO = invitationRepository.save(invitationDAO);
         return emailService.sendInvitationEmail(invitationDAO, userDAO.getName());
     }
@@ -101,6 +103,12 @@ public class InvitationServiceImpl implements InvitationService {
                 .build();
         invitationRepository.save(invitationDAO);
         return emailService.sendInvitationEmail(invitationDAO, userDAO.getName());
+    }
+
+    @Override
+    public ResponseDTO<List<InvitationDAO>> getInvitations(UserDAO userDAO) {
+        List<InvitationDAO> allInvitations = invitationRepository.findAll();
+    return new ResponseDTO<>(allInvitations, new BasicResDTO(CommonConstants.INVITATIONS_FETCH_SUCCESS, HttpStatus.OK));
     }
 
 

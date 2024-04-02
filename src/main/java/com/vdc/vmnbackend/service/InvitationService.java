@@ -8,6 +8,7 @@ import com.vdc.vmnbackend.dto.req.UserInviteReqDTO;
 import com.vdc.vmnbackend.dto.res.BasicResDTO;
 import com.vdc.vmnbackend.dto.res.ResponseDTO;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -75,4 +76,6 @@ public interface InvitationService {
      * @return A BasicResDTO indicating the result of the operation.
      */
     BasicResDTO createMenteeInvite(VentureDAO ventureId, UserDAO userDAO, UserInviteReqDTO userInviteReqDTO);
+
+    ResponseDTO<List<InvitationDAO>> getInvitations(UserDAO userDAO);
 }

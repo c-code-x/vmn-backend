@@ -1,3 +1,5 @@
+package com.vdc.vmnbackend.controller;
+
 import com.vdc.vmnbackend.dao.InvitationDAO;
 import com.vdc.vmnbackend.dao.UserDAO;
 import com.vdc.vmnbackend.dao.VentureDAO;
@@ -15,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,6 +43,12 @@ public class InvitationController {
         this.invitationService = invitationService;
         this.userService = userService;
         this.ventureService = ventureService;
+    }
+
+    @GetMapping
+    public ResponseDTO<List<InvitationDAO>> getInvitations(Authentication authentication) {
+        UserDAO userDAO = userService.getByEmail(authentication.getName());
+        return invitationService.getInvitations(userDAO);
     }
 
     /**
