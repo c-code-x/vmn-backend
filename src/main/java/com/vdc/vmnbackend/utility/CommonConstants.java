@@ -28,4 +28,5 @@ public class CommonConstants {
     public static final String PROFILE_FETCH_FAILER = "User with email not found! Profile fetch failed!";
     public static final String PROFILE_FETCHED = "Profile Fetched!";
     public static final String PROFILE_UPDATED = "Profile Updated!";
+    public static final String INVITATIONS_FETCH_SUCCESS = "Invitations Fetched!";
 }
